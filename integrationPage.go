@@ -98,6 +98,16 @@ func SendMessage(r *http.Request) error {
 
 	// VIOLATION PAYLOAD
 	violationMessage := fmt.Sprintf("🔔\nPolicy: %s \nWatch: %s \nCreated: %s \nNumber Of Issues: %d", violation.PolicyName, violation.WatchName, violation.Created, len(violation.Issues))
+	count := 0
+	for _, thisIssue := range violation.Issues {
+		count++
+		if count <= 5 {
+			violationMessage = fmt.Sprintf("%s\nIssue: %s",violationMessage,thisIssue.Summary)
+		}
+	}
+	if count > 5 {
+		violationMessage = fmt.Sprintf("%s\nAdditional issues available but not displayed under watch: %s",violationMessage, violation.WatchName)
+	}
 	fmt.Println(violationMessage)
 
 	client := resty.New()

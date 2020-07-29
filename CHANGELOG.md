@@ -1,6 +1,9 @@
 # JFrog Xray Microsoft Teams Integration
 All changes to this integration will be documented in this file.
 
+## [0.1.3] -July 29, 2020
+* Added issue summaries into outbound MS Team Channel message to deliver full list of issue summary as part of the message payload.
+
 ## [0.1.2] -July 29, 2020
 * Fixing issues with readme to make it easier to use
 
