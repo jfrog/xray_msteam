@@ -1,6 +1,9 @@
 # JFrog Xray Microsoft Teams Integration
 All changes to this integration will be documented in this file.
 
+## [0.2.1] -July 30, 2020
+* Initial public version 0.2.1
+
 ## [0.2.0] -July 29, 2020
 * Changed to use incoming webhook connector url setup in Microsoft Teams channel
 

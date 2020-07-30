@@ -19,47 +19,15 @@ type Violation struct {
 	Issues             Issues    `json:"issues"`
 }
 
-
 type Issue struct {
 	Severity           string             `json:"severity"`
 	Type               string             `json:"type"` // Issue type license/security
 	Summary            string             `json:"summary"`
 	Description        string             `json:"description"`
-	//ImpactedArtifacts  ImpactedArtifacts  `json:"impacted_artifacts"`
 	Cve                string             `json:"cve"`
 }
 
 type Issues []Issue
-
-/*
-type ImpactedArtifact struct {
-	Name             string         `json:"name"` // Artifact name
-	DisplayName      string         `json:"display_name"`
-	Path             string         `json:"path"`  // Artifact path in Artifactory
-	PackageType      string         `json:"pkg_type"`
-	SHA256           string         `json:"sha256"` // Artifact SHA 256 checksum
-	SHA1             string         `json:"sha1"`
-	Depth            int            `json:"depth"`  // Artifact depth in its hierarchy
-	ParentSHA        string         `json:"parent_sha"`
-	InfectedFiles    InfectedFiles  `json:"infected_files"`
-}
-
-type ImpactedArtifacts []ImpactedArtifact
-
-
-type InfectedFile struct {
-	Name           string    `json:"name"`
-	Path           string    `json:"path"`  // artifact path in Artifactory
-	SHA256         string    `json:"sha256"`// artifact SHA 256 checksum
-	Depth          int       `json:"depth"` // Artifact depth in its hierarchy
-	ParentSHA      string    `json:"parent_sha"` // Parent artifact SHA1
-	DisplayName    string    `json:"display_name"`
-	PackageType    string    `json:"pkg_type"`
-}
-
-type InfectedFiles []InfectedFile
-*/
-
 
 type TeamMessageActionTarget struct {
 	Os  string `json:"os"`
