@@ -1,6 +1,9 @@
 # JFrog Xray Microsoft Teams Integration
 All changes to this integration will be documented in this file.
 
+## [0.2.0] -July 29, 2020
+* Changed to use incoming webhook connector url setup in Microsoft Teams channel
+
 ## [0.1.3] -July 29, 2020
 * Added issue summaries into outbound MS Team Channel message to deliver full list of issue summary as part of the message payload.
 

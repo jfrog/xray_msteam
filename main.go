@@ -15,20 +15,14 @@ var server *http.Server
 var stop chan os.Signal
 
 
-var MicrosoftTeamId string
-var MicrosoftTeamChannelId string
-var MicrosoftAccessToken string
+var MicrosoftTeamWebhook string
 
 func init() {
 	stop = make(chan os.Signal, 1)
 	signal.Notify(stop, os.Interrupt, syscall.SIGTERM)
 
-	MicrosoftTeamId = os.Getenv("MICROSOFT_TEAM_ID")
-	MicrosoftTeamChannelId = os.Getenv("MICROSOFT_TEAM_CHANNEL_ID")
-	MicrosoftAccessToken = os.Getenv("MICROSOFT_ACCESS_TOKEN")
-
-	fmt.Println(fmt.Sprintf("Using Microsoft Team Id: %s", MicrosoftTeamId))
-	fmt.Println(fmt.Sprintf("Using Microsoft Channel Team Id: %s", MicrosoftTeamChannelId))
+	MicrosoftTeamWebhook = os.Getenv("MICROSOFT_TEAM_WEBHOOK")
+	fmt.Println(fmt.Sprintf("Using Microsoft Team Webhook URL: %s", MicrosoftTeamWebhook))
 }
 
 func main() {

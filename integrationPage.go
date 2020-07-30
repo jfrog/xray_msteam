@@ -25,11 +25,13 @@ type Issue struct {
 	Type               string             `json:"type"` // Issue type license/security
 	Summary            string             `json:"summary"`
 	Description        string             `json:"description"`
-	ImpactedArtifacts  ImpactedArtifacts  `json:"impacted_artifacts"`
+	//ImpactedArtifacts  ImpactedArtifacts  `json:"impacted_artifacts"`
+	Cve                string             `json:"cve"`
 }
 
 type Issues []Issue
 
+/*
 type ImpactedArtifact struct {
 	Name             string         `json:"name"` // Artifact name
 	DisplayName      string         `json:"display_name"`
@@ -44,6 +46,7 @@ type ImpactedArtifact struct {
 
 type ImpactedArtifacts []ImpactedArtifact
 
+
 type InfectedFile struct {
 	Name           string    `json:"name"`
 	Path           string    `json:"path"`  // artifact path in Artifactory
@@ -55,13 +58,27 @@ type InfectedFile struct {
 }
 
 type InfectedFiles []InfectedFile
+*/
 
-type TeamMessage struct {
-	Content string
+
+type TeamMessageActionTarget struct {
+	Os  string `json:"os"`
+	Uri string `json:"uri"`
+}
+
+type TeamMessageAction struct {
+	Type string `json:"@type"`
+	Name string `json:"name"`
+	Targets []TeamMessageActionTarget `json:"targets"`
 }
 
 type TeamPayload struct {
-	Body TeamMessage
+	Context string `json:"@context"`
+	Type string `json:"@type"`
+	ThemeColor string `json:"themeColor"`
+	Title string `json:"title"`
+	Text string `json:"text"`
+	PotentialActions []TeamMessageAction `json:"potentialAction"`
 }
 
 func PingPage(w http.ResponseWriter, r *http.Request) {
@@ -92,28 +109,24 @@ func SendMessage(r *http.Request) error {
 		return err
 	}
 
-	if len(violation.PolicyName) > 0 {
+	if len(violation.PolicyName) == 0 {
 		return errors.New("Unable to read webhook payload for critical data to send to MS Teams")
 	}
 
 	// VIOLATION PAYLOAD
-	violationMessage := fmt.Sprintf("🔔\nPolicy: %s \nWatch: %s \nCreated: %s \nNumber Of Issues: %d", violation.PolicyName, violation.WatchName, violation.Created, len(violation.Issues))
+	violationMessage := fmt.Sprintf("🔔 Policy: %s 🕐 Watch: %s ⌚ Created: %s 🔢 Number Of Issues: %d", violation.PolicyName, violation.WatchName, violation.Created, len(violation.Issues))
 	count := 0
+	issueMessage := ""
 	for _, thisIssue := range violation.Issues {
 		count++
 		if count <= 5 {
-			violationMessage = fmt.Sprintf("%s\nIssue: %s",violationMessage,thisIssue.Summary)
+			issueMessage = fmt.Sprintf("%s<br/>⚙️ Issue: %s",issueMessage,thisIssue.Summary)
 		}
 	}
 	if count > 5 {
-		violationMessage = fmt.Sprintf("%s\nAdditional issues available but not displayed under watch: %s",violationMessage, violation.WatchName)
+		issueMessage = fmt.Sprintf("%s\nAdditional issues available but not displayed under watch: %s",issueMessage, violation.WatchName)
 	}
-	fmt.Println(violationMessage)
-
 	client := resty.New()
-
-	// Bearer Auth Token for all request
-	client.SetAuthToken(MicrosoftAccessToken)
 
 	// Retries are configured per client
 	client.
@@ -126,8 +139,18 @@ func SendMessage(r *http.Request) error {
 	// Default is 2 seconds.
 	SetRetryMaxWaitTime(20 * time.Second)
 
-	message := TeamMessage{Content: violationMessage}
-	teamPayload := TeamPayload{Body: message}
+
+	firstCve := ""
+	if len(violation.Issues) > 0 {
+		firstCve = violation.Issues[0].Cve
+	}
+
+	actionTarget := fmt.Sprintf("https://cve.mitre.org/cgi-bin/cvename.cgi?name=%s", firstCve)
+	target := TeamMessageActionTarget{Os:"default",Uri:actionTarget}
+	targets := []TeamMessageActionTarget{target}
+	action := TeamMessageAction{Type: "OpenUri", Name: "Research more...", Targets: targets}
+	actions := []TeamMessageAction{action}
+	teamPayload := TeamPayload{Context:"https://schema.org/extensions",Type:"MessageCard",ThemeColor:"0ac70d",Title:violationMessage,Text:issueMessage,PotentialActions:actions}
 
 	// Marshal to JSON payload
 	payload, payloadErr := json.Marshal(teamPayload)
@@ -135,15 +158,11 @@ func SendMessage(r *http.Request) error {
 		return payloadErr
 	}
 
-	// Send Payload toe Microsoft Graph API to post message to Teams
-	url := fmt.Sprintf("https://graph.microsoft.com/v1.0/teams/%s/channels/%s/messages", MicrosoftTeamId, MicrosoftTeamChannelId)
-	resp, errored := client.R().
+	// Send Payload toe Microsoft Teams Channel Webhook to post message to Teams Channel setup by the user
+	_, errored := client.R().
 					SetHeader("Content-Type", "application/json").
 					SetBody(string(payload)).
-					Post(url)
-
-	fmt.Println(resp)
-
+					Post(MicrosoftTeamWebhook)
 	if errored != nil {
 		return errored
 	}
